@@ -1,0 +1,116 @@
+version: '3.7'
+services:
+  config-server:
+    image: config-server:v1
+    ports:
+      - "8888:8888"
+    restart: always
+    networks:
+      - microservecios
+  eureka-server:
+    image: eureka-server:v1
+    ports:
+      - "8761:8761"
+    restart: always
+    networks:
+      - microservecios
+  microservice-mysql8:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    restart: always
+    networks:
+      - microservecios
+    environment:
+      - MYSQL_DATABASE=db_springboot_cloud
+      - MYSQL_ROOT_PASSWORD=sasa
+  microservice-postgres15:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - microservecios
+    environment:
+      POSTGRES_DB: db_springboot_cloud
+      POSTGRES_PASSWORD: sasa
+  service-products:
+    image: products:v1
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - config-server
+      - eureka-server
+      - microservice-mysql8
+  service-items:
+    image: service-items:v1
+    ports:
+      - "8002:8002"
+      - "8005:8005"
+      - "8007:8007"
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - config-server
+      - eureka-server
+      - service-products
+  service-users:
+    image: service-users:v1
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - config-server
+      - eureka-server
+      - microservice-postgres15
+  service-oauth:
+    image: service-oauth:v1
+    ports:
+      - "9100:9100"
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - config-server
+      - eureka-server
+      - service-users
+  cloud-server-gateway:
+    image: cloud-server-gateway:v1
+    ports:
+      - "8090:8090"
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - config-server
+      - eureka-server
+      - service-products
+      - service-items
+  microservice-rabbitmq312:
+    image: rabbitmq:3.12.0-management-alpine
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    restart: always
+    networks:
+      - microservecios
+  zipkin-server:
+    image: zipkin-server:v1
+    ports:
+      - "9411:9411"
+    restart: always
+    networks:
+      - microservecios
+    depends_on:
+      - microservice-rabbitmq312
+      - microservice-mysql8
+    environment:
+      RABBIT_ADDRESSES: microservice-rabbitmq312:5672
+      STORAGE_TYPE: mysql
+      MYSQL_USER: zipkin
+      MYSQL_PASS: zipkin
+      MYSQL_HOST: microservice-mysql8
+networks:
+  microservecios:

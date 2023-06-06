@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "../show"
+		},
+		{
+			"name": "items",
+			"path": "../items"
+		},
+		{
+			"name": "eureka-server",
+			"path": "../eureka-server"
+		}
+	],
+	"settings": {
+		"java.compile.nullAnalysis.mode": "automatic",
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
+}
